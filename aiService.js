@@ -2,7 +2,6 @@
 
 const openai = new OpenAI({
   apiKey:
-    "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",
 });
  async function interpretarMensaje(texto) {
   const completion = await openai.chat.completions.create({
@@ -38,7 +37,7 @@ function detectarComandoRapido(texto) {
     .replace(/[\u0300-\u036f]/g, "") // elimina acentos
     .replace(/[^\w\s]/gi, "") // elimina signos (?,!,.)
     .replace(/\s+/g, " ") // elimina espacios dobles
-    .trim(); 
+    .trim();
 
   if (/hola|buen dia|buenas|menu|ayuda/.test(t)) return "MENU"
 
@@ -51,7 +50,7 @@ function detectarComandoRapido(texto) {
   if (/consulta|hablar|persona|rrhh/.test(t)) return "CONSULTA"
 
   if (/recibo|recibos/.test(t)) return "RECIBOS"
-  
+
   return null
 }
 
@@ -59,7 +58,7 @@ async function interpretarConIA(texto) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 100000); // 10 segundos timeout */
-    
+
     const response = await fetch("http://localhost:11434/api/generate", {
       method: "POST",
       headers: {
