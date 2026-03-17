@@ -1,0 +1,48 @@
+services:
+  bot-rrhh:
+    build: .
+    container_name: bot-rrhh
+    restart: unless-stopped
+    ports:
+      - "3010:3010"
+
+    env_file:
+      - .env
+    environment:
+      - DOCKER=true
+
+    volumes:
+      # Sesión de WhatsApp (persistida entre reinicios)
+      - ./wwebjs_auth:/app/.wwebjs_auth
+      - ./wwebjs_cache:/app/.wwebjs_cache
+
+      # Carpeta de red compartida (SMB) montada en el contenedor
+      - sueldos:/mnt/sueldos:ro
+
+    shm_size: '256mb'
+    security_opt:
+      - seccomp:unconfined
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3010"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+# ──────────────────────────────────────────────────────────────────
+# Volumen CIFS que apunta al recurso compartido en 192.168.0.15
+#
+# Antes de levantar: instalar cifs-utils en el servidor Linux:
+#   sudo apt-get install -y cifs-utils
+#
+# Completar usuario y contraseña del servidor de archivos.
+# Si no requiere autenticación usar: o: "guest,vers=3.0"
+# ──────────────────────────────────────────────────────────────────
+#volumes:
+#  sueldos:
+#    driver: local
+#    driver_opts:
+#      type: cifs
+#      o: "guest,vers=3.0,uid=1000,gid=1000"
+#      device: "//192.168.0.15/General-Sueldos"
