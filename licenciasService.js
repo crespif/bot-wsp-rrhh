@@ -6,7 +6,7 @@ const esDocker = process.env.DOCKER === "true";
 async function obtenerLicencias() {
   if (esDocker) {
     // ── Linux / Docker: usar mdb-reader (JavaScript puro, sin drivers Windows) ──
-    const MDBReader = require("mdb-reader");
+    const { default: MDBReader } = await import("mdb-reader");
     const buffer = fs.readFileSync(config.RUTA_ACCESS);
     const reader = new MDBReader(buffer);
     const table = reader.getTable(config.TABLA_LICENCIAS);
