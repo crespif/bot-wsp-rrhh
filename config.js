@@ -30,7 +30,7 @@ module.exports = {
   PORTAL_RRHH:
     "https://portalrrhh.celta.com.ar",
 
-  TABLA_LICENCIAS: "licencias",
+  TABLA_LICENCIAS: "Licencias",
 
   CACHE_MINUTES: 5,
 };

@@ -30,6 +30,15 @@ client.on("qr", (qr) => {
   setQR(qr);
 });
 
+client.on("authenticated", () => {
+  console.log("AUTENTICADO");
+  setConectado();
+});
+
+client.on("auth_failure", (msg) => {
+  console.error("ERROR DE AUTENTICACION", msg);
+});
+
 client.on("ready", () => {
   console.log("BOT ACTIVO");
 

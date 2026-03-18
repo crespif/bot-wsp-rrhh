@@ -21,8 +21,16 @@ function emitirEvento(tipo, datos = {}) {
 }
 
 function setConectado() {
-  conectado = true
-  qrActual = null
+  console.log("SET_CONECTADO: true");
+  conectado = true;
+  qrActual = null;
+  emitirEvento('actualizar');
+}
+
+function setQR(qr) {
+  console.log("SET_QR: (actualizado)");
+  qrActual = qr;
+  emitirEvento('actualizar');
 }
 
 function estaConectado() {
@@ -299,4 +307,4 @@ app.listen(3010, () => {
   console.log("Panel en http://localhost:3010");
 });
 
-module.exports = { setQR: (qr) => qrActual = qr, setConectado, estaConectado, emitirEvento };
+module.exports = { setQR, setConectado, estaConectado, emitirEvento };
