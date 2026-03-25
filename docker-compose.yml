@@ -17,7 +17,7 @@ services:
       - ./wwebjs_cache:/app/.wwebjs_cache
 
       # Carpeta de red compartida (SMB) montada en el contenedor
-      - /mnt/sueldos:/mnt/sueldos:ro
+      - sueldos:/mnt/sueldos:ro
 
     shm_size: '256mb'
     security_opt:
@@ -39,10 +39,10 @@ services:
 # Completar usuario y contraseña del servidor de archivos.
 # Si no requiere autenticación usar: o: "guest,vers=3.0"
 # ──────────────────────────────────────────────────────────────────
-# volumes:
-#   sueldos:
-#     driver: local
-#     driver_opts:
-#       type: cifs
-#       o: "guest,vers=3.0,uid=1000,gid=1000"
-#       device: "//192.168.0.15/General-Sueldos"
+volumes:
+  sueldos:
+    driver: local
+    driver_opts:
+      type: cifs
+      o: "guest,vers=3.0,uid=1000,gid=1000"
+      device: "//192.168.0.15/General-Sueldos"
