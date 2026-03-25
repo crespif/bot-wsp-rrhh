@@ -30,6 +30,7 @@ function setConectado() {
 function setQR(qr) {
   console.log("SET_QR: (actualizado)");
   qrActual = qr;
+  conectado = false;
   emitirEvento('actualizar');
 }
 
