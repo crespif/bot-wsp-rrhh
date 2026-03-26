@@ -61,8 +61,16 @@ client.on("ready", () => {
  */
 client.on("message", async (msg) => {
   try {
+    // Ignorar mensajes que vienen de estados (Stories) o de broadcasts
+    if (msg.isStatus || msg.from === 'status@broadcast') {
+      return;
+    }
+
     const texto = msg.body;
     const chat = await msg.getChat();
+    if (chat.isGroup) {
+      return;
+    }
     const contact = await msg.getContact();
     const numero = contact.number;
 
