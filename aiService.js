@@ -59,7 +59,7 @@ async function interpretarConIA(texto) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 100000); // 10 segundos timeout */
 
-    const response = await fetch("http://localhost:11434/api/generate", {
+    const response = await fetch("http://host.docker.internal:11434/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
