@@ -57,7 +57,7 @@ function detectarComandoRapido(texto) {
 async function interpretarConIA(texto) {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 100000); // 10 segundos timeout */
+    const timeout = setTimeout(() => controller.abort(), 200000); // 200 segundos timeout */
 
     const response = await fetch("http://host.docker.internal:11434/api/generate", {
       method: "POST",
