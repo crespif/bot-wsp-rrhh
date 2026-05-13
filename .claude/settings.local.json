@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir c:\\\\Users\\\\crespif\\\\Desktop\\\\DEV\\\\N8N-whatsapp\\\\whatsapp-web /b)",
+      "Bash(findstr /v node_modules)",
+      "Bash(ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 sistemas@192.168.0.17 \"echo '=== OLLAMA ===' && curl -s http://localhost:11434/api/tags | head -c 500 && echo '' && echo '=== CONTENEDORES ===' && docker ps --format 'table {{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}' && echo '=== RED DOCKER ===' && docker network ls\")",
+      "Bash(sshpass -p 'C3Lta562.*' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 sistemas@192.168.0.17 \"echo '=== OLLAMA ===' && curl -s http://localhost:11434/api/tags && echo '' && echo '=== CONTENEDORES ===' && docker ps --format 'table {{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}' && echo '=== HOST.DOCKER.INTERNAL ===' && docker inspect \\\\$\\(docker ps -q | head -1\\) 2>/dev/null | grep -A5 ExtraHosts || echo 'Sin extra_hosts configurado'\")"
+    ]
+  }
+}

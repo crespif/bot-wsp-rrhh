@@ -6,6 +6,8 @@ function obtenerFrancos(sector) {
   if (sector == "REDES") {
     sector = "REDES CON RESUMEN"
   }
+  console.log(sector);
+  console.log(config.RUTA_FRANCOS + sector + ".xlsx");
 
   const workbook = XLSX.readFile(config.RUTA_FRANCOS + sector + ".xlsx");
 

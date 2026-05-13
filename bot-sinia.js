@@ -4,6 +4,7 @@ const qrcode = require("qrcode-terminal");
 const { buscarEmpleado } = require("./empleadosService");
 const { obtenerFrancos } = require("./francosService");
 const { obtenerLicencias } = require("./licenciasService");
+const { interpretarMensaje, generarRespuesta } = require("./aiService");
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -18,96 +19,53 @@ client.on("ready", () => {
 });
 
 client.on("message", async (msg) => {
-  const texto = msg.body.toLowerCase();
-  //const numero = msg.from.replace("@c.us", "");
+  const texto = msg.body;
   const contact = await msg.getContact();
-
   const numero = contact.number;
-
   const empleado = buscarEmpleado(numero);
 
   if (!empleado) {
     msg.reply("Número no registrado.");
     return;
   }
-  if (texto === "hola" || texto === "menu") {
-    msg.reply(
-      `👋 Bienvenido al sistema de *RRHH*
 
-Podés consultar:
+  const intencion = await interpretarMensaje(texto);
+  let contexto = "";
 
-📅 *FRANCOS*
-🏖️ *VACACIONES*
-💬 *CONSULTA*
-
-Escribí el comando que necesites.`,
-    );
+  if (intencion === "FRANCOS") {
+    try {
+      const francos = obtenerFrancos(empleado.sector);
+      const misFrancos = francos.filter((f) => f.LEGAJO == empleado.empleado_id);
+      contexto = misFrancos.length > 0
+        ? "Francos del empleado:\n" + misFrancos.map((f) => `- ${f.HORAS} horas`).join("\n")
+        : "El empleado no tiene francos asignados.";
+    } catch (e) {
+      contexto = "No se pudo obtener la información de francos en este momento.";
+    }
+  } else if (intencion === "VACACIONES") {
+    try {
+      const licencias = await obtenerLicencias();
+      const misVacaciones = licencias.filter((l) => l.Legajo == empleado.empleado_id);
+      if (misVacaciones.length > 0) {
+        const v = misVacaciones[0];
+        contexto = `Vacaciones disponibles: ${v.TOTALDIAS} días en total.`;
+        if (v.DIAS1) contexto += `\nPeriodo 1: ${v.DIAS1} días, del ${new Date(v.DESDE1).toLocaleDateString("es-AR")} al ${new Date(v.HASTA1).toLocaleDateString("es-AR")}.`;
+        if (v.DIAS2) contexto += `\nPeriodo 2: ${v.DIAS2} días, del ${new Date(v.DESDE2).toLocaleDateString("es-AR")} al ${new Date(v.HASTA2).toLocaleDateString("es-AR")}.`;
+        if (v.DIAS3) contexto += `\nPeriodo 3: ${v.DIAS3} días, del ${new Date(v.DESDE3).toLocaleDateString("es-AR")} al ${new Date(v.HASTA3).toLocaleDateString("es-AR")}.`;
+      } else {
+        contexto = "El empleado no tiene vacaciones registradas.";
+      }
+    } catch (e) {
+      contexto = "No se pudo obtener la información de vacaciones en este momento.";
+    }
+  } else if (intencion === "MENU") {
+    contexto = "El empleado está saludando o pidiendo información. Saludalo por su nombre y contale que puede consultarte sobre francos, vacaciones, inasistencias o derivarte consultas generales a un compañero.";
+  } else {
+    contexto = "La consulta no corresponde a información que podés resolver. Decile al empleado que vas a derivar su consulta a un compañero de RRHH.";
   }
 
-  if (texto.includes("francos")) {
-    const francos = obtenerFrancos();
-    
-    const misFrancos = francos.filter((f) => f.LEGAJO == empleado.empleado_id);
-    
-    if (misFrancos.length === 0) {
-      msg.reply("No tenés francos asignados.");
-      return;
-    }
-    let msgFrancos = "Tus francos:\n";
-
-    const lista = misFrancos.map((f) => f.HORAS).join("\n");
-
-    msgFrancos += `${lista} horas.\n\n`;
-    msgFrancos += `Si tenés otra consulta escribí *MENU*`;
-
-    msg.reply(msgFrancos);
-
-  }
-
-  if (texto.includes("vacacion")) {
-    const licencias = await obtenerLicencias();
-
-    const misVacaciones = licencias.filter(
-      (l) => l.Legajo == empleado.empleado_id,
-    );
-
-    if (misVacaciones.length === 0) {
-      msg.reply("No encontramos vacaciones.");
-      return;
-    }
-
-    const v = misVacaciones[0];
-
-    let mensaje = `👋 Hola *${empleado.nombre}*\n\n`;
-    mensaje += `🏖️ *Vacaciones disponibles: ${v.TOTALDIAS} días*\n\n`;
-
-    if (v.DIAS1) {
-      mensaje += `📅 *Periodo 1* - ${v.DIAS1} días\n`;
-      mensaje += `Desde: ${new Date(v.DESDE1).toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}\n`;
-      mensaje += `Hasta: ${new Date(v.HASTA1).toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
-    }
-
-    if (v.DIAS2) {
-      mensaje += `📅 *Periodo 2* - ${v.DIAS2} días\n`;
-      mensaje += `Desde: ${new Date(v.DESDE2).toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}\n`;
-      mensaje += `Hasta: ${new Date(v.HASTA2).toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
-    }
-
-    if (v.DIAS3) {
-      mensaje += `📅 *Periodo 3* - ${v.DIAS3} días\n`;
-      mensaje += `Desde: ${new Date(v.DESDE3).toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}\n`;
-      mensaje += `Hasta: ${new Date(v.HASTA3).toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
-    }
-
-    mensaje += `Si tenés otra consulta escribí *MENU*`;
-
-    msg.reply(mensaje);
-    /* const lista = misVacaciones
-      .map((v) => `${v.fecha_inicio} - ${v.fecha_fin}`)
-      .join("\n"); */
-
-    /* msg.reply(`Tus vacaciones: \n ${lista}`); */
-  }
+  const respuesta = await generarRespuesta(texto, empleado, contexto);
+  msg.reply(respuesta);
 });
 
 client.initialize();

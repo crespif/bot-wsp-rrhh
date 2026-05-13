@@ -31,6 +31,8 @@ MENU`,
 }
  */
 
+const OLLAMA_URL = process.env.OLLAMA_URL || "http://host.docker.internal:11434";
+
 function detectarComandoRapido(texto) {
 
   const t = texto.toLowerCase().normalize("NFD") // separa letras de acentos
@@ -59,7 +61,7 @@ async function interpretarConIA(texto) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 200000); // 200 segundos timeout */
 
-    const response = await fetch("http://host.docker.internal:11434/api/generate", {
+    const response = await fetch(`${OLLAMA_URL}/api/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -108,16 +110,50 @@ Mensaje: ${texto}
 }
 
 async function interpretarMensaje(texto) {
-
-  const rapido = detectarComandoRapido(texto)
-
-  if (rapido) {
-    //console.log("Comando rapido detectado:", rapido)
-    return rapido
-  }
-
-  // si no se detecta → usar IA
-  return interpretarConIA(texto)
+  const rapido = detectarComandoRapido(texto);
+  if (rapido) return rapido;
+  return interpretarConIA(texto);
 }
 
-module.exports = { interpretarMensaje };
+async function generarRespuesta(mensaje, empleado, contexto) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 200000);
+
+    const systemPrompt = `Sos Gabriela, asistente virtual de RRHH de la empresa.
+Respondés siempre en español rioplatense, de forma cordial y natural, como si fuera una conversación de WhatsApp.
+El empleado que te escribe se llama ${empleado.nombre}${empleado.sector ? ` y trabaja en el sector ${empleado.sector}` : ""}.
+No menciones que sos una IA ni que usás un sistema. Si no tenés información suficiente, decí que derivás la consulta a un compañero de RRHH.`;
+
+    const promptFinal = contexto
+      ? `Información disponible:\n${contexto}\n\nMensaje del empleado: ${mensaje}`
+      : `Mensaje del empleado: ${mensaje}`;
+
+    const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "llama3",
+        system: systemPrompt,
+        prompt: promptFinal,
+        stream: false,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      console.error(`Error IA generarRespuesta: ${response.status}`);
+      return "En este momento no puedo procesar tu consulta. Te derivo con un compañero de RRHH.";
+    }
+
+    const data = await response.json();
+    return data.response.trim();
+  } catch (error) {
+    console.error("Error en generarRespuesta:", error.message);
+    return "En este momento no puedo procesar tu consulta. Te derivo con un compañero de RRHH.";
+  }
+}
+
+module.exports = { interpretarMensaje, generarRespuesta };
