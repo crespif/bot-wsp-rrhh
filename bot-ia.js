@@ -229,4 +229,21 @@ async function iniciarBot() {
   }
 }
 
-iniciarBot();
+async function precalentarOllama() {
+  const OLLAMA_URL = process.env.OLLAMA_URL || "http://host.docker.internal:11434";
+  try {
+    console.log("Precalentando modelo Ollama...");
+    const res = await fetch(`${OLLAMA_URL}/api/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "llama3", prompt: "hola", stream: false }),
+      signal: AbortSignal.timeout(120000),
+    });
+    if (res.ok) console.log("Modelo listo.");
+    else console.warn("Ollama respondió con error:", res.status);
+  } catch (e) {
+    console.warn("No se pudo precalentar Ollama:", e.message);
+  }
+}
+
+precalentarOllama().then(iniciarBot);
